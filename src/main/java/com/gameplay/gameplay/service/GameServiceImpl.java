@@ -1,6 +1,7 @@
 package com.gameplay.gameplay.service;
 
 import com.gameplay.gameplay.controller.dto.NewGameDto;
+import com.gameplay.gameplay.dao.GameDao;
 import fr.le_campus_numerique.square_games.engine.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,7 +16,9 @@ public class GameServiceImpl implements GameService {
 
     @Autowired
     private GameCatalog gameCatalog;
-    private final Map<UUID, Game> games = new ConcurrentHashMap<>();
+
+    private GameDao gameDao;
+//    private final Map<UUID, Game> games = new ConcurrentHashMap<>();
 
     @Override
     public Game createGame(NewGameDto game) {
@@ -30,14 +33,14 @@ public class GameServiceImpl implements GameService {
 //        } catch (InvalidPositionException e) {
 //            throw new RuntimeException(e);
 //        }
-        gameCatalog.addGame(newGame);
-        gameCatalog.addGame(newGame);
+//        gameCatalog.addGame(newGame);
+        gameDao.save(newGame);
         return newGame;
     }
 
     @Override
     public Game getGame(UUID id) {
-        Game game = gameCatalog.findGameById(id);
+        Game game = gameDao.findById(id);
         if(game == null){
             return null;
         }
@@ -46,12 +49,12 @@ public class GameServiceImpl implements GameService {
 
     @Override
     public Collection<Game> getAllGames() {
-        return gameCatalog.getAllGames();
+        return gameDao.findAll();
     }
 
     @Override
     public Game addMove(UUID gameId, UUID playerId, CellPosition position) {
-        Game game = getGame(gameId);
+        Game game = gameDao.findById(gameId);
 
 //      if (!playerId.equals(game.getCurrentPlayerId())) {
 //           throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Not your turn");
@@ -67,6 +70,7 @@ public class GameServiceImpl implements GameService {
 
         try {
             tokenToPlay.moveTo(position);
+            gameDao.update(game);
             return game;
         } catch (InvalidPositionException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid move: " + e.getMessage());
@@ -75,7 +79,7 @@ public class GameServiceImpl implements GameService {
 
     @Override
     public Collection<CellPosition> getMoves(UUID gameId, UUID playerId) {
-        Game game = getGame(gameId);
+        Game game = gameDao.findById(gameId);
 
         return game.getRemainingTokens().stream()
                 .filter(token -> token.getOwnerId().isPresent() &&
