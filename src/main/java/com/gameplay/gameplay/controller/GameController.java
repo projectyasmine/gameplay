@@ -1,5 +1,6 @@
 package com.gameplay.gameplay.controller;
 
+import com.gameplay.gameplay.controller.dto.GameDto;
 import com.gameplay.gameplay.controller.dto.NewGameDto;
 import com.gameplay.gameplay.service.GameService;
 import fr.le_campus_numerique.square_games.engine.CellPosition;
@@ -17,22 +18,22 @@ public class GameController {
     private GameService gameService;
 
     @PostMapping("/games")
-    public Game createGame(@RequestBody NewGameDto game) {
+    public GameDto createGame(@RequestBody NewGameDto game) {
         return gameService.createGame(game);
     }
 
     @GetMapping("/games/{game_id}")
-    public Game getGame(@PathVariable UUID game_id) {
+    public GameDto getGame(@PathVariable UUID game_id) {
         return gameService.getGame(game_id);
     }
 
     @GetMapping("/games")
-    public Collection<Game> getAllGames() {
+    public Collection<GameDto> getAllGames() {
         return gameService.getAllGames();
     }
 
     @PutMapping("/games/{game_id}/moves")
-    public Game addMove(@PathVariable UUID game_id,@RequestHeader("X-UserId") UUID playerId, @RequestBody CellPosition position) {
+    public GameDto addMove(@PathVariable UUID game_id,@RequestHeader("X-UserId") UUID playerId, @RequestBody CellPosition position) {
 //      Game game = gameService.getGame(game_id);
 //      UUID playerId = game.getCurrentPlayerId();
         return gameService.addMove(game_id, playerId, position);
@@ -40,13 +41,9 @@ public class GameController {
 
     @GetMapping("/games/{game_id}/moves")
     public Collection<CellPosition> getMoves(@PathVariable UUID game_id) {
-        Game game = gameService.getGame(game_id);
-        UUID playerId = game.getCurrentPlayerId();
+        GameDto game = gameService.getGame(game_id);
+        UUID playerId = game.currentPlayerId();
         return gameService.getMoves(game_id, playerId);
-
     }
-
-
-
 
     }

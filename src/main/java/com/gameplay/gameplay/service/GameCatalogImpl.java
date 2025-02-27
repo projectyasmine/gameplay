@@ -38,23 +38,23 @@ public class GameCatalogImpl implements GameCatalog {
                 .orElse(null);
     }
 
-    @Override
-    public Game findGameById(UUID id) {
-        return games.stream()
-                .filter(game -> game.getId().equals(id))
-                .findFirst()
-                .orElse(null);
-
-    }
-
-    @Override
-    public void addGame(Game game) {
-        games.add(game);
-    }
-
-    @Override
-    public Collection<Game> getAllGames() {
-        return games;
-    }
+//    @Override
+//    public Game findGameById(UUID id) {
+//        return games.stream()
+//                .filter(game -> game.getId().equals(id))
+//                .findFirst()
+//                .orElse(null);
+//
+//    }
+//
+//    @Override
+//    public void addGame(Game game) {
+//        games.add(game);
+//    }
+//
+//    @Override
+//    public Collection<Game> getAllGames() {
+//        return games;
+//    }
 
 }

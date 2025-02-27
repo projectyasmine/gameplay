@@ -1,7 +1,9 @@
 package com.gameplay.gameplay.service;
 
+import com.gameplay.gameplay.controller.dto.GameDto;
 import com.gameplay.gameplay.controller.dto.NewGameDto;
 import com.gameplay.gameplay.dao.GameDao;
+import com.gameplay.gameplay.plugin.GamePlugin;
 import fr.le_campus_numerique.square_games.engine.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -10,6 +12,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Service
 public class GameServiceImpl implements GameService {
@@ -17,11 +20,14 @@ public class GameServiceImpl implements GameService {
     @Autowired
     private GameCatalog gameCatalog;
 
+    @Autowired
+    private List<GamePlugin> gamePlugins;
+
     private GameDao gameDao;
 //    private final Map<UUID, Game> games = new ConcurrentHashMap<>();
 
     @Override
-    public Game createGame(NewGameDto game) {
+    public GameDto createGame(NewGameDto game) {
         GameFactory factory= gameCatalog.getGameFactory(game.type());
         if(factory==null){
             return null;
@@ -35,25 +41,27 @@ public class GameServiceImpl implements GameService {
 //        }
 //        gameCatalog.addGame(newGame);
         gameDao.save(newGame);
-        return newGame;
+        return convertToDto(newGame);
     }
 
     @Override
-    public Game getGame(UUID id) {
+    public GameDto getGame(UUID id) {
         Game game = gameDao.findById(id);
         if(game == null){
             return null;
         }
-        return game;
+        return convertToDto(game);
     }
 
     @Override
-    public Collection<Game> getAllGames() {
-        return gameDao.findAll();
+    public Collection<GameDto> getAllGames() {
+        return gameDao.findAll().stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public Game addMove(UUID gameId, UUID playerId, CellPosition position) {
+    public GameDto addMove(UUID gameId, UUID playerId, CellPosition position) {
         Game game = gameDao.findById(gameId);
 
 //      if (!playerId.equals(game.getCurrentPlayerId())) {
@@ -71,7 +79,7 @@ public class GameServiceImpl implements GameService {
         try {
             tokenToPlay.moveTo(position);
             gameDao.update(game);
-            return game;
+            return convertToDto(game);
         } catch (InvalidPositionException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid move: " + e.getMessage());
         }
@@ -87,6 +95,19 @@ public class GameServiceImpl implements GameService {
                 .findFirst()
                 .map(Token::getAllowedMoves)
                 .orElse(Collections.emptySet());
+    }
+
+    private GameDto convertToDto(Game game) {
+        return new GameDto(
+                game.getId(),
+                game.getFactoryId(),
+                game.getPlayerIds(),
+                game.getStatus(),
+                game.getCurrentPlayerId(),
+                game.getBoard(),
+                game.getRemainingTokens(),
+                game.getRemovedTokens()
+        );
     }
 
 
