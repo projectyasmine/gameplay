@@ -9,7 +9,7 @@ import java.util.UUID;
 public interface GameCatalog {
     Collection<String> getGameIdentifiers();
     GameFactory getGameFactory(String gameFactoryId);
-//    Game findGameById(UUID id);
-//    void addGame(Game game);
-//    Collection<Game> getAllGames();
+    Game findGameById(UUID id);
+    void addGame(Game game);
+    Collection<Game> getAllGames();
 }
