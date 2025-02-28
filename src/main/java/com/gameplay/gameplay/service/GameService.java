@@ -15,4 +15,5 @@ public interface GameService {
     Collection<Game> getAllGames();
     Game addMove(UUID id, UUID playerId, CellPosition cellPosition);
     Collection<CellPosition> getMoves(UUID gameId, UUID playerId);
+    boolean isUserValid(UUID userId);
 }

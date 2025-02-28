@@ -1,10 +1,14 @@
 package com.gameplay.gameplay.service;
 
 import com.gameplay.gameplay.controller.dto.NewGameDto;
+import com.gameplay.gameplay.plugin.GamePlugin;
 import fr.le_campus_numerique.square_games.engine.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
@@ -16,6 +20,9 @@ public class GameServiceImpl implements GameService {
     @Autowired
     private GameCatalog gameCatalog;
     private final Map<UUID, Game> games = new ConcurrentHashMap<>();
+//    private final Map<String, GamePlugin> gamePlugins;
+
+    private final RestClient restClient = RestClient.create();
 
     @Override
     public Game createGame(NewGameDto game) {
@@ -56,6 +63,9 @@ public class GameServiceImpl implements GameService {
 //      if (!playerId.equals(game.getCurrentPlayerId())) {
 //           throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Not your turn");
 //       }
+        if (!playerId.equals(game.getCurrentPlayerId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Player ID does not match Game ID");
+        }
 
         Token tokenToPlay = game.getRemainingTokens().stream()
                 .filter(token -> token.getOwnerId().isPresent() &&
@@ -83,6 +93,18 @@ public class GameServiceImpl implements GameService {
                 .findFirst()
                 .map(Token::getAllowedMoves)
                 .orElse(Collections.emptySet());
+    }
+
+    @Override
+    public boolean isUserValid(UUID userId) {
+        String url = "http://localhost:8082/users/"+userId.toString();
+
+        var response = restClient.get()
+                .uri(url)
+                .retrieve()
+                .toEntity(String.class);
+
+        return response.getStatusCode().is2xxSuccessful() && response.hasBody();
     }
 
 

@@ -17,7 +17,10 @@ public class GameController {
     private GameService gameService;
 
     @PostMapping("/games")
-    public Game createGame(@RequestBody NewGameDto game) {
+    public Game createGame(@RequestBody NewGameDto game, @RequestHeader("X-UserId") UUID playerId) {
+        if(!gameService.isUserValid(playerId)) {
+            return null;
+        }
         return gameService.createGame(game);
     }
 
@@ -35,6 +38,9 @@ public class GameController {
     public Game addMove(@PathVariable UUID game_id,@RequestHeader("X-UserId") UUID playerId, @RequestBody CellPosition position) {
 //      Game game = gameService.getGame(game_id);
 //      UUID playerId = game.getCurrentPlayerId();
+        if(!gameService.isUserValid(playerId)) {
+            return null;
+        }
         return gameService.addMove(game_id, playerId, position);
     }
 
